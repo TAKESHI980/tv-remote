@@ -1,0 +1,30 @@
+name: Build Debug APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip Project
+        run: unzip -o "*.zip" -d project_src
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+      - name: Build Debug APK
+        run: |
+          ROOT_DIR=$(dirname $(find project_src -name "settings.gradle*" | head -n 1))
+          cd "$ROOT_DIR"
+          gradle assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: project_src/**/app/build/outputs/apk/debug/app-debug.apk
